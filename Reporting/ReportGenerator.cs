@@ -63,6 +63,7 @@ namespace Reporting
                     klov.InitMongoDbConnection("localhost", 27017);
                     klov.InitKlovServerConnection("http://localhost:8443");
                     klov.ProjectName = "Random Search";
+                    klov.AnalysisStrategy = AnalysisStrategy.Class;
 
                     extent.AttachReporter(klov, htmlReporter);
                 }
