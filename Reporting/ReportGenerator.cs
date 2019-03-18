@@ -138,7 +138,7 @@ namespace Reporting
             startInfo.FileName = $@"{currentdir}\setup.bat";
             cmd.StartInfo = startInfo;
             cmd.Start();
-            Thread.Sleep(20000);
+            Thread.Sleep(10000);
         }
 
         private static void FlushServer()
