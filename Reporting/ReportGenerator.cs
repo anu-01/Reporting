@@ -18,6 +18,7 @@ namespace Reporting
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using AventStack.ExtentReports;
     using AventStack.ExtentReports.Reporter;
     using AventStack.ExtentReports.Reporter.Configuration;
@@ -133,10 +134,11 @@ namespace Reporting
             // Initialize the mongodb and klov server connection
             cmd = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.Arguments = $@"{ReportSettings["MongoDb"]} {currentdir}\Packages";
+            startInfo.Arguments = $@"{ReportSettings["MongoDb"]} {currentdir}\klovServer";
             startInfo.FileName = $@"{currentdir}\setup.bat";
             cmd.StartInfo = startInfo;
             cmd.Start();
+            Thread.Sleep(20000);
         }
 
         private static void FlushServer()
@@ -153,6 +155,7 @@ namespace Reporting
             }
             catch (Exception ex)
             {
+
                 Debug.WriteLine(ex);
             }
         }
