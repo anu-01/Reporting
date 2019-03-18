@@ -16,6 +16,7 @@ namespace Reporting
     using System.Collections.Specialized;
     using System.Configuration;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using AventStack.ExtentReports;
     using AventStack.ExtentReports.Reporter;
@@ -36,6 +37,7 @@ namespace Reporting
         private static ExtentReports extent;
         private static ExtentKlovReporter klov;
         private static ExtentTest extentTest;
+        private static Process cmd;
 
 
         [OneTimeSetUp()]
@@ -45,8 +47,9 @@ namespace Reporting
             {
                 if (Enabled)
                 {
+                    string currentdir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                     string style = "body {font-family: 'Segoe UI';}";
-                    ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter(@"E:\POC\Reporting\Reporting\bin\Debug\");
+                    ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter(currentdir);
                     htmlReporter.Config.Theme = DarkTheme ? Theme.Dark : Theme.Standard;
                     htmlReporter.Config.CSS = style;
                     extent = new ExtentReports();
@@ -54,6 +57,8 @@ namespace Reporting
                     extent.AddSystemInfo("Env", ConfigurationManager.AppSettings["Env"]);
                     extent.AddSystemInfo("User", Environment.UserName);
 
+                    StartKlovServer(currentdir);
+                    
                     klov = new ExtentKlovReporter();
                     klov.InitMongoDbConnection("localhost", 27017);
                     klov.InitKlovServerConnection("http://localhost:8443");
@@ -76,6 +81,7 @@ namespace Reporting
                 if (Enabled)
                 {
                     extent.Flush();
+                    FlushServer();
                 }
             }
             catch (Exception ex)
@@ -119,6 +125,22 @@ namespace Reporting
 
             var node = extentTest.CreateNode(TestContext.CurrentContext.Test.MethodName);
             node.Log(logstatus, "Test Execution status - " + logstatus + stacktrace);
+        }
+
+        private static void StartKlovServer(string currentdir)
+        {
+            // Initialize the mongodb and klov server connection
+            cmd = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.Arguments = $@"{ReportSettings["MongoDb"]} {currentdir}\Packages";
+            startInfo.FileName = $@"{currentdir}\setup.bat";
+            cmd.StartInfo = startInfo;
+            cmd.Start();
+        }
+
+        private static void FlushServer()
+        {
+            cmd.WaitForExit();
         }
 
         private static void AddMetadata(ExtentTest node, IEnumerable<object> categories, string author)
