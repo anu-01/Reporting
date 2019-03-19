@@ -57,14 +57,14 @@ namespace Reporting
                     extent.AddSystemInfo("Host", Environment.MachineName);
                     extent.AddSystemInfo("Env", ConfigurationManager.AppSettings["Env"]);
                     extent.AddSystemInfo("User", Environment.UserName);
-
+                    
                     StartKlovServer(currentdir);
                     
                     klov = new ExtentKlovReporter();
                     klov.InitMongoDbConnection("localhost", 27017);
                     klov.InitKlovServerConnection("http://localhost:8443");
                     klov.ProjectName = "Random Search";
-                    klov.AnalysisStrategy = AnalysisStrategy.Class;
+                    klov.AnalysisStrategy = AnalysisStrategy.Class;                    
 
                     extent.AttachReporter(klov, htmlReporter);
                 }
@@ -143,6 +143,7 @@ namespace Reporting
 
         private static void FlushServer()
         {
+            klov.Stop();
             cmd.WaitForExit();
         }
 
