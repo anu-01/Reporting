@@ -96,6 +96,7 @@
     </Compile>
     <Compile Include="RandomSearch.cs" />
     <Compile Include="ReportGenerator.cs" />
+    <Compile Include="TestClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

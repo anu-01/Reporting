@@ -29,7 +29,7 @@ namespace Reporting
     /// <summary>
     /// http://extentreports.com/docs/versions/4/net/
     /// </summary>
-    internal partial class RandomSearch
+    public class ReportGenerator
     {        
         private static readonly NameValueCollection ReportSettings = ConfigurationManager.GetSection("reporting") as NameValueCollection;
         private static readonly bool Enabled = ReportSettings != null && bool.Parse(ReportSettings["Enabled"]);
@@ -40,55 +40,59 @@ namespace Reporting
         private static ExtentTest extentTest;
         private static Process cmd;
 
-
-        [OneTimeSetUp()]
-        public static void ClassInitialize()
+        [SetUpFixture]
+        internal class ReportManager
         {
-            try
-            {
-                if (Enabled)
-                {
-                    string currentdir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                    string style = "body {font-family: 'Segoe UI';}";
-                    ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter(currentdir);
-                    htmlReporter.Config.Theme = DarkTheme ? Theme.Dark : Theme.Standard;
-                    htmlReporter.Config.CSS = style;
-                    extent = new ExtentReports();
-                    extent.AddSystemInfo("Host", Environment.MachineName);
-                    extent.AddSystemInfo("Env", ConfigurationManager.AppSettings["Env"]);
-                    extent.AddSystemInfo("User", Environment.UserName);
-                    
-                    StartKlovServer(currentdir);
-                    
-                    klov = new ExtentKlovReporter();
-                    klov.InitMongoDbConnection("localhost", 27017);
-                    klov.InitKlovServerConnection("http://localhost:8443");
-                    klov.ProjectName = "Random Search";
-                    klov.AnalysisStrategy = AnalysisStrategy.Class;                    
 
-                    extent.AttachReporter(klov, htmlReporter);
+            [OneTimeSetUp]
+            public static void ClassInitialize()
+            {
+                try
+                {
+                    if (Enabled)
+                    {
+                        string currentdir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                        string style = "body {font-family: 'Segoe UI';}";
+                        ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter(currentdir);
+                        htmlReporter.Config.Theme = DarkTheme ? Theme.Dark : Theme.Standard;
+                        htmlReporter.Config.CSS = style;
+                        extent = new ExtentReports();
+                        extent.AddSystemInfo("Host", Environment.MachineName);
+                        extent.AddSystemInfo("Env", ConfigurationManager.AppSettings["Env"]);
+                        extent.AddSystemInfo("User", Environment.UserName);
+
+                        StartKlovServer(currentdir);
+
+                        klov = new ExtentKlovReporter();
+                        klov.InitMongoDbConnection("localhost", 27017);
+                        klov.InitKlovServerConnection("http://localhost:8443");
+                        klov.ProjectName = "Random Search";
+                        klov.AnalysisStrategy = AnalysisStrategy.Class;
+
+                        extent.AttachReporter(klov, htmlReporter);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-            }
-        }
 
-        [OneTimeTearDown]
-        public static void ClassCleanUp()
-        {
-            try
+            [OneTimeTearDown]
+            public static void ClassCleanUp()
             {
-                if (Enabled)
+                try
                 {
-                    extent.Flush();
-                    FlushServer();
+                    if (Enabled)
+                    {
+                        extent.Flush();
+                        FlushServer();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
             }
         }
 
@@ -97,7 +101,7 @@ namespace Reporting
         {
             extentTest = extent.CreateTest(TestContext.CurrentContext.Test.ClassName);
             var categories = TestContext.CurrentContext.Test.Properties["Category"];
-            AddMetadata(extentTest, categories, TestContext.CurrentContext.Test.Properties.Get("Author").ToString());
+            AddMetadata(extentTest, categories, TestContext.CurrentContext.Test.Properties.Get("Author")?.ToString());
         }
 
         [TearDown]
@@ -151,8 +155,11 @@ namespace Reporting
         {
             try
             {
-                node.AssignCategory(categories.Cast<string>().ToArray());
-                node.AssignAuthor(author);
+                if (categories.Count() > 0 && ! string.IsNullOrEmpty(author))
+                {
+                    node.AssignCategory(categories.Cast<string>().ToArray());
+                    node.AssignAuthor(author);
+                }                  
             }
             catch (Exception ex)
             {

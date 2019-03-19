@@ -9,8 +9,8 @@ using Reporting.Properties;
 
 namespace Reporting
 {
-    [TestFixture]
-    internal partial class RandomSearch
+    [TestFixture, Parallelizable(ParallelScope.Fixtures)]
+    public class RandomSearch : ReportGenerator
     {
         private IWebDriver driver;
 
@@ -22,10 +22,10 @@ namespace Reporting
             this.driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
         }
 
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.Category("Search Engine")]
-        [NUnit.Framework.Category("bvt")]
-        [NUnit.Framework.Author("anammalu")]
+        [TestAttribute()]
+        [Category("Search Engine")]
+        [Category("bvt")]
+        [Author("anammalu")]
         public void GoogleSearch()
         {
             this.driver.Navigate().GoToUrl(Resources.Google);
@@ -37,10 +37,10 @@ namespace Reporting
             Assert.IsTrue(element.Displayed);
         }
 
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.CategoryAttribute("Search Engine")]
-        [NUnit.Framework.CategoryAttribute("priority=1")]
-        [NUnit.Framework.Author("anammalu")]
+        [TestAttribute()]
+        [CategoryAttribute("Search Engine")]
+        [CategoryAttribute("priority=1")]
+        [Author("anammalu")]
         public void NegativeTestForBingSearch()
         {
             this.driver.Navigate().GoToUrl(Resources.Bing);
